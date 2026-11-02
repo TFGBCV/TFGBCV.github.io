@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBV Monitor — document gender-based cyberviolence with local AI</title>
+<meta name="description" content="A portable Windows tool for civil-society teams: monitor Facebook pages for gender-based cyberviolence and hate speech with a fully local, vision-capable AI model. Read-only, human-approved, SHA-256 provenance on every export.">
+<meta name="theme-color" content="#0d0716">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a855f7'/%3E%3Cstop offset='1' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='24' r='11' fill='none' stroke='white' stroke-width='5'/%3E%3Cline x1='32' y1='35' x2='32' y2='52' stroke='white' stroke-width='5'/%3E%3Cline x1='25' y1='46' x2='39' y2='46' stroke='white' stroke-width='5'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#08050f; --panel:rgba(255,255,255,.035); --panel2:rgba(255,255,255,.055);
+    --line:rgba(255,255,255,.09); --line2:rgba(168,85,247,.35);
+    --text:#f0ebfa; --muted:#a99fc9; --muted2:#8a80ab;
+    --accent:#a855f7; --accent2:#c084fc; --pink:#e879f9; --ok:#34d399; --warn:#fbbf24;
+    --r:16px; --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       letter-spacing:-.01em;overflow-x:hidden}
+  ::selection{background:rgba(168,85,247,.4);color:#fff}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:none}
+  img{max-width:100%}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ============================ ambient background ============================ */
+  .bgfx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+  .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5}
+  .b1{width:560px;height:560px;background:radial-gradient(circle,rgba(124,58,237,.55),transparent 65%);
+      top:-180px;left:-140px;animation:drift1 26s ease-in-out infinite alternate}
+  .b2{width:480px;height:480px;background:radial-gradient(circle,rgba(232,121,249,.30),transparent 65%);
+      top:16%;right:-180px;animation:drift2 32s ease-in-out infinite alternate}
+  .b3{width:640px;height:640px;background:radial-gradient(circle,rgba(59,130,246,.22),transparent 65%);
+      bottom:-260px;left:22%;animation:drift3 38s ease-in-out infinite alternate}
+  @keyframes drift1{to{transform:translate(90px,60px) scale(1.12)}}
+  @keyframes drift2{to{transform:translate(-70px,90px) scale(1.08)}}
+  @keyframes drift3{to{transform:translate(60px,-80px) scale(1.1)}}
+  .gridlines{position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:radial-gradient(720px 480px at 50% 0%,#000 0%,transparent 78%);
+            mask-image:radial-gradient(720px 480px at 50% 0%,#000 0%,transparent 78%)}
+
+  /* ============================ chrome ============================ */
+  .progress{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:30;
+    background:linear-gradient(90deg,var(--accent),var(--pink));box-shadow:0 0 12px rgba(168,85,247,.7);transition:width .12s linear}
+  header{position:sticky;top:0;z-index:20;background:rgba(8,5,15,.72);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent}
+  header.scrolled{border-bottom-color:var(--line)}
+  nav{display:flex;gap:20px;align-items:center;padding:13px 0}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--text);letter-spacing:-.02em}
+  .brand img{width:30px;height:30px;border-radius:9px;box-shadow:0 4px 18px rgba(168,85,247,.45)}
+  nav .spacer{flex:1}
+  nav a.nav{color:var(--muted);font-weight:550;font-size:14.5px;position:relative;padding:4px 2px;transition:color .25s}
+  nav a.nav::after{content:"";position:absolute;left:0;right:100%;bottom:-3px;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,var(--accent),var(--pink));transition:right .3s var(--ease)}
+  nav a.nav:hover,nav a.nav[aria-current]{color:var(--text)}
+  nav a.nav:hover::after,nav a.nav[aria-current]::after{right:0}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:12px;
+    font-weight:650;font-size:15px;cursor:pointer;border:1px solid transparent;
+    transition:transform .3s var(--ease),box-shadow .3s var(--ease),filter .3s;position:relative;overflow:hidden}
+  .btn.primary{color:#fff;background:linear-gradient(135deg,var(--accent),#7c3aed);
+    box-shadow:0 10px 30px -8px rgba(168,85,247,.55)}
+  .btn.primary::after{content:"";position:absolute;top:0;left:-80%;width:60%;height:100%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+    transform:skewX(-18deg);animation:shine 3.4s ease-in-out infinite}
+  @keyframes shine{0%,55%{left:-80%}80%,100%{left:120%}}
+  .btn.primary:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 16px 40px -10px rgba(168,85,247,.75)}
+  .btn.ghost{border-color:var(--line);color:var(--text);background:var(--panel);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .btn.ghost:hover{border-color:var(--line2);transform:translateY(-2px)}
+
+  /* ============================ typography helpers ============================ */
+  .overline{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:750;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:14px}
+  .overline::before{content:"";width:22px;height:1.5px;border-radius:2px;
+    background:linear-gradient(90deg,var(--accent),transparent)}
+  .grad{background:linear-gradient(90deg,var(--accent2),var(--pink),#f0abfc,var(--accent2));
+    background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:hue 9s ease-in-out infinite}
+  @keyframes hue{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
+  h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.03em;line-height:1.12;margin:0 0 12px}
+  .sub{color:var(--muted);margin:0 0 34px;max-width:720px;font-size:16.5px}
+  section{padding:76px 0}
+
+  /* ============================ reveal animations ============================ */
+  [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+  [data-reveal].in{opacity:1;transform:none}
+  [data-reveal="left"]{transform:translateX(-30px)}
+  [data-reveal="pop"]{transform:scale(.94)}
+  [data-reveal].in:hover{}
+  .stag>*{opacity:0;transform:translateY(24px);
+    transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--i,0)*70ms)}
+  .stag.in>*{opacity:1;transform:none}
+
+  /* ============================ glass cards ============================ */
+  .glass{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+    border:1px solid var(--line);border-radius:var(--r);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 20px 50px -30px rgba(0,0,0,.8);
+    transition:transform .35s var(--ease),border-color .35s,box-shadow .35s}
+  .glass:hover{transform:translateY(-4px);border-color:var(--line2);
+    box-shadow:0 26px 70px -28px rgba(168,85,247,.4)}
+  .glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+    background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,.02) 38%,rgba(168,85,247,.35));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude}
+
+  /* ============================ hero ============================ */
+  .hero{position:relative;padding:88px 0 46px;text-align:center}
+  .hero .tag{display:inline-flex;gap:8px;align-items:center;padding:7px 16px;border-radius:99px;
+    font-size:13.5px;font-weight:600;color:var(--accent2);background:var(--panel);
+    border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);margin-bottom:26px;
+    animation:rise .9s var(--ease) .05s both}
+  .hero .tag .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);
+    box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:pulse 2.4s infinite}
+  @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+  .hero h1{font-size:clamp(34px,5.6vw,58px);line-height:1.06;letter-spacing:-.045em;margin:0 0 22px;font-weight:850;
+    animation:rise .9s var(--ease) .15s both}
+  .hero p.lead{font-size:clamp(16px,2vw,19.5px);color:var(--muted);max-width:730px;margin:0 auto 32px;
+    animation:rise .9s var(--ease) .25s both}
+  .hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:52px;
+    animation:rise .9s var(--ease) .35s both}
+  @keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;
+    animation:rise .9s var(--ease) .45s both}
+  .stat{padding:18px 10px;text-align:center}
+  .stat b{display:block;font-size:clamp(24px,3vw,32px);font-weight:850;letter-spacing:-.03em}
+  .stat small{color:var(--muted);font-size:13px}
+
+  /* ============================ marquee ============================ */
+  .strip{border-block:1px solid var(--line);background:rgba(255,255,255,.02);overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+            mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+  .strip .row{display:flex;gap:44px;width:max-content;padding:13px 0;
+    animation:marquee 26s linear infinite}
+  .strip:hover .row{animation-play-state:paused}
+  @keyframes marquee{to{transform:translateX(-50%)}}
+  .strip span{display:inline-flex;align-items:center;gap:10px;color:var(--muted2);
+    font-size:13px;font-weight:650;letter-spacing:.16em;white-space:nowrap}
+  .strip span::before{content:"◆";color:var(--accent);font-size:9px}
+
+  /* ============================ pipeline ============================ */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px}
+  .step{padding:20px 18px}
+  .step .n{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;font-weight:850;font-size:13px;
+    color:#fff;background:linear-gradient(135deg,var(--accent),#7c3aed);margin-bottom:12px;
+    box-shadow:0 6px 18px -6px rgba(168,85,247,.65)}
+  .step b{display:block;margin:0 0 5px;font-size:15px}
+  .step small{color:var(--muted);font-size:13px;line-height:1.5;display:block}
+
+  /* ============================ features / cards ============================ */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:16px}
+  .card{padding:24px}
+  .card .ico{width:44px;height:44px;display:grid;place-items:center;font-size:21px;border-radius:13px;margin-bottom:14px;
+    background:linear-gradient(135deg,rgba(168,85,247,.22),rgba(232,121,249,.12));
+    border:1px solid rgba(168,85,247,.3)}
+  .card h3{margin:0 0 8px;font-size:16.5px;letter-spacing:-.01em}
+  .card p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+
+  .model{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:14px}
+  .m{padding:20px}
+  .m b{display:block;font-size:14.5px;margin-bottom:3px}
+  .m small{color:var(--muted);font-size:13px;line-height:1.55;display:block}
+  .m .chip{display:inline-block;margin-bottom:12px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700;
+    letter-spacing:.08em;color:var(--accent2);background:rgba(168,85,247,.14);border:1px solid rgba(168,85,247,.35)}
+
+  pre{background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:12px;padding:15px 17px;overflow-x:auto;
+    font:13px/1.65 ui-monospace,Consolas,SFMono-Regular,monospace;color:#d9cdf5;position:relative}
+  pre::before{content:"";position:absolute;inset:0;border-radius:12px;padding:1px;pointer-events:none;
+    background:linear-gradient(135deg,rgba(168,85,247,.4),transparent 45%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude}
+  code.inline{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.25);padding:2px 7px;border-radius:7px;font-size:.87em}
+
+  /* tabs / faq */
+  details.tab{border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+  details.tab summary{padding:17px 20px;cursor:pointer;font-weight:650;font-size:15px;list-style:none;
+    display:flex;gap:10px;align-items:center;transition:background .25s}
+  details.tab summary:hover{background:var(--panel2)}
+  details.tab summary::-webkit-details-marker{display:none}
+  details.tab summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid var(--muted);
+    border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .3s var(--ease)}
+  details.tab[open] summary::after{transform:rotate(225deg)}
+  details.tab .body{padding:2px 20px 20px;color:var(--muted);font-size:14.5px;animation:fadeOpen .35s var(--ease)}
+  @keyframes fadeOpen{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+  details.faq{border-radius:14px;margin-bottom:10px}
+  details.faq summary{padding:15px 18px;cursor:pointer;font-weight:600;list-style:none}
+  details.faq summary::-webkit-details-marker{display:none}
+  details.faq div{padding:0 18px 16px;color:var(--muted);font-size:14.5px;animation:fadeOpen .3s var(--ease)}
+
+  .note{border-left:3px solid var(--warn);background:rgba(251,191,36,.07);padding:14px 18px;border-radius:0 12px 12px 0;
+    color:var(--muted);font-size:14.5px;margin-top:26px}
+  .good{border-left:3px solid var(--ok);background:rgba(52,211,153,.07);padding:14px 18px;border-radius:0 12px 12px 0;
+    color:var(--muted);font-size:14.5px;margin-top:26px}
+  .note b,.good b{color:var(--text)}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);padding:40px 0 46px;color:var(--muted);font-size:13.5px;
+    background:linear-gradient(180deg,transparent,rgba(124,58,237,.07))}
+  .badge{display:inline-block;padding:4px 12px;border:1px solid var(--line);border-radius:99px;
+    color:var(--muted);font-size:12px;margin:0 8px 10px 0;background:var(--panel)}
+
+  @media (max-width:640px){
+    .hero{padding:64px 0 36px} section{padding:52px 0}
+    nav a.nav{display:none} nav a#gh{display:inline}
+  }
+
+  /* accessibility: honor reduced motion */
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+    [data-reveal],.stag>*{opacity:1 !important;transform:none !important}
+    .strip .row{animation:none;flex-wrap:wrap}
+  }
+</style>
+</head>
+<body>
+
+<div class="bgfx" aria-hidden="true">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+</div>
+<div class="gridlines" aria-hidden="true"></div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<header id="topbar">
+  <div class="wrap">
+    <nav>
+      <span class="brand"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a855f7'/%3E%3Cstop offset='1' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='24' r='11' fill='none' stroke='white' stroke-width='5'/%3E%3Cline x1='32' y1='35' x2='32' y2='52' stroke='white' stroke-width='5'/%3E%3Cline x1='25' y1='46' x2='39' y2='46' stroke='white' stroke-width='5'/%3E%3C/svg%3E" alt="">GBV&nbsp;Monitor</span>
+      <span class="spacer"></span>
+      <a class="nav" href="#pipeline">How it works</a>
+      <a class="nav" href="#features">Features</a>
+      <a class="nav" href="#install">Install</a>
+      <a class="nav" href="#privacy">Privacy</a>
+      <a class="nav" href="#faq">FAQ</a>
+      <a class="nav btn ghost" id="gh" href="#">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<div class="hero">
+  <div class="wrap">
+    <span class="tag"><span class="dot"></span> Local AI · Read-only · Human-approved · Zero telemetry</span>
+    <h1>Document gender-based<br>cyberviolence with <span class="grad">AI that never phones&nbsp;home</span></h1>
+    <p class="lead">GBV Monitor collects public Facebook posts with a read-only account, classifies GBV
+    &amp; hate speech in <b>Arabic, Darija, French and English</b> with a locally-running vision-capable
+    model, and produces court-ready, SHA-256 anchored documentation.</p>
+    <div class="cta">
+      <a class="btn primary" id="dl" href="#">⬇ Download the latest bundle</a>
+      <a class="btn ghost" href="#install">Installation guide →</a>
+    </div>
+    <div class="stats stag" data-reveal>
+      <div class="stat glass"><b class="grad">~7 GB</b><small>portable bundle — unzip &amp; run</small></div>
+      <div class="stat glass"><b class="grad">2 models</b><small>vision chat 7B + embeddings, both local</small></div>
+      <div class="stat glass"><b class="grad">4 languages</b><small>Arabic · Darija · French · English</small></div>
+      <div class="stat glass"><b class="grad">0 bytes</b><small>sent to any cloud, ever</small></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= marquee ================= -->
+<div class="strip" aria-hidden="true">
+  <div class="row">
+    <span>READ-ONLY COLLECTION</span><span>LOCAL VISION + TEXT MODEL</span><span>HUMAN-IN-THE-LOOP</span>
+    <span>SHA-256 PROVENANCE</span><span>HARD RUN BUDGETS</span><span>NO TELEMETRY</span><span>AUDIT LOG</span>
+    <span>VERDICT MEMORY</span><span>COOKIES IN RAM ONLY</span>
+    <span>READ-ONLY COLLECTION</span><span>LOCAL VISION + TEXT MODEL</span><span>HUMAN-IN-THE-LOOP</span>
+    <span>SHA-256 PROVENANCE</span><span>HARD RUN BUDGETS</span><span>NO TELEMETRY</span><span>AUDIT LOG</span>
+    <span>VERDICT MEMORY</span><span>COOKIES IN RAM ONLY</span>
+  </div>
+</div>
+
+<!-- ================= PIPELINE ================= -->
+<section id="pipeline">
+  <div class="wrap">
+    <div data-reveal><span class="overline">Pipeline</span>
+      <h2>Six moves, one <span class="grad">auditable</span> workflow</h2>
+      <p class="sub">The same app runs as a desktop interface, or as a scheduler on a field laptop
+      that nobody remembers is watching.</p>
+    </div>
+    <div class="steps stag" data-reveal>
+      <div class="step glass" style="--i:0"><span class="n">01</span><b>Collect</b><small>Playwright + your session cookies read public content. Read-only, pseudonymised by default.</small></div>
+      <div class="step glass" style="--i:1"><span class="n">02</span><b>Classify</b><small>Qwen2.5-VL 7B (bundled) flags GBV/hate in text <em>and</em> images — screenshots, ID cards, chat evidence.</small></div>
+      <div class="step glass" style="--i:2"><span class="n">03</span><b>Verify</b><small>A devil's-advocate pass plus a lexicon safety net challenge every flag; disagreements go to review.</small></div>
+      <div class="step glass" style="--i:3"><span class="n">04</span><b>Enrich</b><small>Embeddings find near-duplicates, template campaigns and burst waves; graph the amplifiers.</small></div>
+      <div class="step glass" style="--i:4"><span class="n">05</span><b>Review</b><small>Confirm / reject with one click. Confirmed decisions become memory with provenance stamps.</small></div>
+      <div class="step glass" style="--i:5"><span class="n">06</span><b>Document</b><small>PDF/Markdown reports with evidence chains, coordination graphs, κ stats and an audit log.</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section id="features">
+  <div class="wrap">
+    <div data-reveal><span class="overline">Capabilities</span>
+      <h2>Built for <span class="grad">defensible</span> documentation</h2>
+      <p class="sub">For NGOs and human-rights investigators who need evidence-grade output — and can't
+      send survivor data to a third-party API.</p>
+    </div>
+    <div class="grid stag" data-reveal>
+      <div class="card glass" style="--i:0"><span class="ico">🖼️</span><h3>Text + image screening</h3><p>The shipped model reads both: captions and hate speech in text; NCII &amp; sextortion-screenshot indicators in images. Conservative triage leads only.</p></div>
+      <div class="card glass" style="--i:1"><span class="ico">🧠</span><h3>Verdict memory</h3><p>Items you've confirmed or rejected are matched (≥0.97 similarity) across pages and runs — recurring content inherits your decision, stamped.</p></div>
+      <div class="card glass" style="--i:2"><span class="ico">👁️</span><h3>Self-consistency voting</h3><p>Multiple labelled passes vote on ambiguous items; vote spread feeds the confidence score and the review-inbox ordering.</p></div>
+      <div class="card glass" style="--i:3"><span class="ico">🕸️</span><h3>Coordination analytics</h3><p>Near-dupe &amp; template fingerprints, cross-page duplicates, burst detection vs page history, PageRank/betweenness leaders → GraphML.</p></div>
+      <div class="card glass" style="--i:4"><span class="ico">⚖️</span><h3>Quality dashboard</h3><p>Cohen's κ between your reviews and the AI, per-category calibration, FN/FP stats — plus an eval harness so changes are measured, not vibes.</p></div>
+      <div class="card glass" style="--i:5"><span class="ico">⏱️</span><h3>Watchlists &amp; jobs</h3><p>Register pages with cadences and budgets; the job engine runs due watchlists — or wire the CLI into Windows Task Scheduler.</p></div>
+      <div class="card glass" style="--i:6"><span class="ico">🔐</span><h3>Privacy by construction</h3><p>Cookies held in RAM only, pseudonymised comments, optional SQLCipher encryption at rest, full local audit trail.</p></div>
+      <div class="card glass" style="--i:7"><span class="ico">📄</span><h3>Scrutiny-ready exports</h3><p>PDF/MD/CSV/JSON with per-item evidence chains and fingerprints; longitudinal deltas; handover packs for partner orgs.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODELS ================= -->
+<section id="models">
+  <div class="wrap">
+    <div data-reveal><span class="overline">In the box</span>
+      <h2>What <span class="grad">ships</span> with the bundle</h2>
+      <p class="sub">~6–7 GB, and that's everything — no LM Studio, no Python, no accounts beyond the
+      Facebook session you already use. Model files drop into <code class="inline">models/</code> to swap.</p>
+    </div>
+    <div class="model stag" data-reveal>
+      <div class="m glass" style="--i:0"><span class="chip">VISION + CHAT</span><b>Qwen2.5-VL-7B-Instruct · Q4_K_M</b><small>≈ 4.7 GB GGUF. Text classification and image screening through one llama.cpp server with its mmproj tower.</small></div>
+      <div class="m glass" style="--i:1"><span class="chip">EMBEDDINGS</span><b>nomic-embed-text-v1.5 · Q8_0</b><small>≈ 85 MB GGUF. Near-duplicate &amp; template detection, theme clustering, verdict-memory matching.</small></div>
+      <div class="m glass" style="--i:2"><span class="chip">ENGINE</span><b>llama.cpp (bundled)</b><small>Vulkan-first with CPU fallback; OpenAI-compatible endpoints bound to 127.0.0.1 only.</small></div>
+      <div class="m glass" style="--i:3"><span class="chip">COLLECTOR</span><b>Chromium (bundled)</b><small>The Playwright browser does the read-only collection. Nothing else touches the network.</small></div>
+    </div>
+    <div class="good" data-reveal><b>Swap models freely:</b> drop another <code class="inline">.gguf</code> into
+    <code class="inline">models/</code> — e.g. a 14B model on a ≥16 GB machine. Text-only files disable only the image
+    screening; everything else keeps working.</div>
+  </div>
+</section>
+
+<!-- ================= INSTALL ================= -->
+<section id="install">
+  <div class="wrap">
+    <div data-reveal><span class="overline">Install</span>
+      <h2>Four ways in, <span class="grad">one exe</span> experience</h2>
+      <p class="sub">All paths end the same way: a folder with <code class="inline">GBVMonitor.exe</code> that
+      needs nothing else installed.</p>
+    </div>
+
+    <div class="stag" data-reveal>
+      <details class="tab glass" style="--i:0" open>
+        <summary>🟢 Way 1 — download the release bundle (recommended)</summary>
+        <div class="body">
+          <p>Download <b>all</b> attached files of the latest release into ONE folder (the bundle is split
+          into 1.5 GB parts because of GitHub's asset limit), then reassemble and extract:</p>
+          <pre>copy /b GBVMonitor-full.zip.001+GBVMonitor-full.zip.002+GBVMonitor-full.zip.003 GBVMonitor-full.zip</pre>
+          <p>Right-click the zip → <b>Extract All</b> → open the folder → double-click
+          <code class="inline">GBVMonitor.exe</code>. The console shows the local model loading (15–90 s),
+          then your browser opens the interface.</p>
+          <p>✅ Requirements: Windows 10/11 64-bit · ~8 GB free RAM · ~10 GB disk.</p>
+          <p><a class="btn primary" id="dl2" href="#">⬇ Go to Releases</a></p>
+        </div>
+      </details>
+
+      <details class="tab glass" style="--i:1">
+        <summary>🟡 Way 2 — build it yourself (trust nothing, verify everything)</summary>
+        <div class="body">
+          <p>Clone the repo on Windows and run the one-shot build (installs a build venv, downloads the
+          llama.cpp engine + models, packs everything):</p>
+          <pre>powershell -ExecutionPolicy Bypass -File packaging\build_windows.ps1 -SkipZip</pre>
+          <p>Flags: <code class="inline">-SkipVulkan</code> (CPU-only engine), <code class="inline">-NoVision</code>
+          (skip the 1.35 GB vision tower), <code class="inline">-ChatPrefix …</code> (bundle a different model).
+          A single setup.exe is optional via
+          <code class="inline">C:\Program Files\Inno Setup 7\ISCC.exe packaging\installer.iss</code>.</p>
+        </div>
+      </details>
+
+      <details class="tab glass" style="--i:2">
+        <summary>🔵 Way 3 — bring your own models (LM Studio mode, tech teams)</summary>
+        <div class="body">
+          <p>Run the suite directly with Python 3.10–3.13 and point it at LM Studio, so you choose any
+          local chat / embedding / vision model from the LM Studio catalogue:</p>
+          <pre>pip install -r requirements.txt
+python app.py            # web interface
+python monitor.py run-due --enrich --verify   # scheduled CLI pass</pre>
+          <p>Set <code class="inline">GBV_VISION_MODEL</code> to the ID of a downloaded vision model to enable
+          image screening. Same privacy rules — nothing leaves 127.0.0.1 except Facebook reads.</p>
+        </div>
+      </details>
+
+      <details class="tab glass" style="--i:3">
+        <summary>🟣 Scheduler mode — weekly monitoring without a window</summary>
+        <div class="body">
+          <p>The same exe runs headless commands for watchlists you've configured in the UI:</p>
+          <pre>GBVMonitor.exe monitor run-due --enrich --verify
+GBVMonitor.exe monitor watch --interval 900
+GBVMonitor.exe monitor add-watch https://www.facebook.com/&lt;page&gt; --label "Darija monitoring" --cadence-hours 24</pre>
+          <p>Wire it into Windows Task Scheduler (daily/weekly). Runs wake, process due watchlists with
+          hard budgets, and stop — nothing idles in the background.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="note" data-reveal><b>Facebook reality-check:</b> automated collection violates Facebook's terms —
+    use a dedicated (non-personal) account, keep cadences low, and expect account restrictions. The tool is designed
+    for low-volume, schedule-driven, read-only monitoring; it is not a bulk-harvest scraper.</div>
+  </div>
+</section>
+
+<!-- ================= PRIVACY ================= -->
+<section id="privacy">
+  <div class="wrap">
+    <div data-reveal><span class="overline">Privacy &amp; ethics</span>
+      <h2>Nothing <span class="grad">goes anywhere</span> without a human export</h2>
+      <p class="sub">Hard rules, not policies: read-only collection, local-only models, human approval on every flag,
+      hard budgets per run, provenance on every claim.</p>
+    </div>
+    <div class="grid stag" data-reveal>
+      <div class="card glass" style="--i:0"><span class="ico">🧎</span><h3>Human chain-of-custody</h3><p>Every flag lands unconfirmed in a review inbox; exports record reviewer, timestamp and decision. The AI never writes "evidence" by itself.</p></div>
+      <div class="card glass" style="--i:1"><span class="ico">🎭</span><h3>Pseudonymised by default</h3><p>Author names and commenters become stable local aliases; the mapping never leaves the machine.</p></div>
+      <div class="card glass" style="--i:2"><span class="ico">🍪</span><h3>Cookies: memory only</h3><p>Facebook session cookies are held in RAM for the current run and never written to disk — by design and by test.</p></div>
+      <div class="card glass" style="--i:3"><span class="ico">📜</span><h3>Audit log</h3><p>Every run, review, export and config change is appended to a local audit trail — who did what, when.</p></div>
+    </div>
+    <div class="note" data-reveal><b>Ethics notice:</b> intended for lawful documentation of gender-based cyberviolence by
+    affected communities, human-rights defenders, journalists and researchers. You are responsible for complying with
+    local law, platform terms and ethical data-management duties (incl. any required legal basis for collecting
+    third-party data).</div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section id="faq">
+  <div class="wrap">
+    <div data-reveal><span class="overline">FAQ</span>
+      <h2>Questions, <span class="grad">answered</span></h2>
+    </div>
+    <div class="stag" data-reveal>
+      <details class="faq glass" style="--i:0"><summary>Where does my data actually go?</summary><div>Nowhere by default. Models run via llama.cpp on 127.0.0.1, the case database is local SQLite (optionally encrypted at rest), and exports happen only when you generate them. The only outbound traffic is reading the Facebook pages you chose.</div></details>
+      <details class="faq glass" style="--i:1"><summary>Does it work offline?</summary><div>After the first run the AI engine runs without internet. Facebook collection obviously needs a connection — that's the only outbound use.</div></details>
+      <details class="faq glass" style="--i:2"><summary>Which languages are supported?</summary><div>The prompt pack targets Arabic (MSA + Darija), English and French; the lexicon safety net carries LWY-adjacent Arabic slurs. You can extend <code class="inline">lexicon.py</code> without touching the model.</div></details>
+      <details class="faq glass" style="--i:3"><summary>Can the AI decide what counts as evidence?</summary><div>No — by design. Hard rules: read-only collection, human approval on every flag, hard budgets per run, SHA-256 provenance. The AI proposes, you dispose.</div></details>
+      <details class="faq glass" style="--i:4"><summary>What hardware do I need?</summary><div>Windows 10/11 x64, ~8 GB free RAM for the bundled 7B model (a 14B-class model wants ~14 GB), ~10 GB disk. CPU-only works; Vulkan GPUs make each run noticeably faster.</div></details>
+      <details class="faq glass" style="--i:5"><summary>Can I share a case with a partner org?</summary><div>Yes — export the report pack (PDF + CSV + JSON with provenance) or the case dataset itself. Nothing is uploaded by the tool: you hand over the files, and the receiving org sees exactly what your team confirmed or rejected.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px" data-reveal>
+      <span class="brand" style="font-size:15px"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%237c3aed'/%3E%3Ccircle cx='32' cy='24' r='11' fill='none' stroke='white' stroke-width='5'/%3E%3Cline x1='32' y1='35' x2='32' y2='52' stroke='white' stroke-width='5'/%3E%3Cline x1='25' y1='46' x2='39' y2='46' stroke='white' stroke-width='5'/%3E%3C/svg%3E" alt="">GBV Monitor</span>
+      <a class="btn ghost" id="gh2" href="#" style="padding:8px 16px;font-size:14px">Source &amp; issues →</a>
+    </div>
+    <div data-reveal>
+      <span class="badge">Read-only collection</span>
+      <span class="badge">Local models only</span>
+      <span class="badge">Human-in-the-loop</span>
+      <span class="badge">SHA-256 provenance</span>
+      <span class="badge">Windows x64 · LM Studio on other OSes</span>
+    </div>
+    <div style="margin-top:16px" data-reveal>Releases: <a id="rel" href="#">downloads</a> ·
+    This site describes research/civil-society software, not legal advice.<br>
+    <small>AI output must be reviewed by humans before use. Made with 💜 for documentation teams.</small></div>
+  </div>
+</footer>
+
+<script>
+  // One constant to update if the repo moves — links are computed so this page
+  // works from GitHub Pages without dead relative links to github.com.
+  window.REPO = "gamepassnvd-creator/TGBV";
+  const u = s => "https://github.com/" + window.REPO + s;
+  for (const id of ["gh", "gh2"]) { const e = document.getElementById(id); if (e) e.href = u(""); }
+  for (const id of ["dl", "dl2"]) { const e = document.getElementById(id); if (e) e.href = u("/releases"); }
+  const rel = document.getElementById("rel"); if (rel) rel.href = u("/releases");
+
+  // ---- scroll progress bar
+  const bar = document.getElementById("progress");
+  const onScroll = () => {
+    const h = document.documentElement;
+    const p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
+    bar.style.width = (p * 100).toFixed(2) + "%";
+    document.getElementById("topbar").classList.toggle("scrolled", h.scrollTop > 8);
+  };
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+
+  // ---- scroll-triggered reveals (IntersectionObserver, staggered)
+  const io = new IntersectionObserver(entries => {
+    for (const ent of entries) {
+      if (ent.isIntersecting) { ent.target.classList.add("in"); io.unobserve(ent.target); }
+    }
+  }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+  document.querySelectorAll("[data-reveal]").forEach(el => io.observe(el));
+</script>
+</body>
+</html>
