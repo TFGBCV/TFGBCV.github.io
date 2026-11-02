@@ -4,31 +4,123 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GBV Monitor — document gender-based cyberviolence with local AI</title>
+
+<!-- theme init BEFORE paint (no flash): saved choice, else system preference -->
+<script>
+(function(){
+  var t = null;
+  try { t = localStorage.getItem("gbv-theme"); } catch (e) {}
+  if (t !== "light" && t !== "dark") {
+    t = window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  }
+  document.documentElement.dataset.theme = t;
+})();
+</script>
+
 <meta name="description" content="A portable Windows tool for civil-society teams: monitor Facebook pages for gender-based cyberviolence and hate speech with a fully local, vision-capable AI model. Read-only, human-approved, SHA-256 provenance on every export.">
-<meta name="theme-color" content="#0d0716">
+<meta name="robots" content="index,follow">
+<meta name="author" content="TGBV">
+<link rel="canonical" href="https://gamepassnvd-creator.github.io/TGBV/">
+<meta name="theme-color" content="#08050f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f5fb" media="(prefers-color-scheme: light)">
+<!-- Open Graph / social cards -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="GBV Monitor">
+<meta property="og:url" content="https://gamepassnvd-creator.github.io/TGBV/">
+<meta property="og:title" content="GBV Monitor — document gender-based cyberviolence with local AI">
+<meta property="og:description" content="Monitor Facebook pages for GBV & hate speech with a fully local, vision-capable AI model. Read-only collection, human-approved flags, SHA-256 provenance.">
+<meta property="og:image" content="https://gamepassnvd-creator.github.io/TGBV/og-banner.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GBV Monitor — local AI for GBV &amp; hate-speech documentation">
+<meta name="twitter:description" content="Fully local, vision-capable AI documentation tool. Read-only collection, human-approved flags, SHA-256 provenance.">
+<meta name="twitter:image" content="https://gamepassnvd-creator.github.io/TGBV/og-banner.png">
+<!-- Structured data: application + FAQ (rich results) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "GBV Monitor",
+  "url": "https://gamepassnvd-creator.github.io/TGBV/",
+  "downloadUrl": "https://github.com/gamepassnvd-creator/TGBV/releases/latest",
+  "operatingSystem": "Windows 10, Windows 11",
+  "applicationCategory": "SecurityApplication",
+  "keywords": "gender-based violence, hate speech, OSINT, local LLM, Facebook monitoring, human rights, NGO documentation, digital footprint",
+  "description": "Portable Windows tool: collect public Facebook posts read-only, classify gender-based violence and hate speech in Arabic, Darija, French and English with a bundled local vision-capable model, review every flag by hand, and export SHA-256-anchored PDF/CSV/JSON documentation.",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Organization", "name": "TGBV"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Where does my data actually go?", "acceptedAnswer": {"@type": "Answer", "text": "Nowhere by default. Models run through llama.cpp on 127.0.0.1, the case database is local SQLite (optionally encrypted at rest), and exports happen only when you generate them. The only outbound traffic is reading the Facebook pages you chose."}},
+    {"@type": "Question", "name": "Does it work offline?", "acceptedAnswer": {"@type": "Answer", "text": "After the first run the AI engine runs without internet. Facebook collection obviously needs a connection — that is the only outbound use."}},
+    {"@type": "Question", "name": "Which languages are supported?", "acceptedAnswer": {"@type": "Answer", "text": "The prompt pack targets Arabic (MSA + Darija), English and French; the lexicon safety net carries LWY-adjacent Arabic slurs. You can extend lexicon.py without touching the model."}},
+    {"@type": "Question", "name": "Can the AI decide what counts as evidence?", "acceptedAnswer": {"@type": "Answer", "text": "No — by design. Hard rules: read-only collection, human approval on every flag, hard budgets per run, SHA-256 provenance. The AI proposes, you dispose."}},
+    {"@type": "Question", "name": "What hardware do I need?", "acceptedAnswer": {"@type": "Answer", "text": "Windows 10/11 x64, about 8 GB free RAM for the bundled 7B model (a 14B-class model wants about 14 GB), ~10 GB disk. CPU-only works; Vulkan GPUs make each run noticeably faster."}},
+    {"@type": "Question", "name": "Can I share a case with a partner org?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — export the report pack (PDF + CSV + JSON with provenance) or the case dataset itself. Nothing is uploaded by the tool: you hand over the files, and the receiving org sees exactly what your team confirmed or rejected."}}
+  ]
+}
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a855f7'/%3E%3Cstop offset='1' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='24' r='11' fill='none' stroke='white' stroke-width='5'/%3E%3Cline x1='32' y1='35' x2='32' y2='52' stroke='white' stroke-width='5'/%3E%3Cline x1='25' y1='46' x2='39' y2='46' stroke='white' stroke-width='5'/%3E%3C/svg%3E">
 <style>
-  :root{
-    --bg:#08050f; --panel:rgba(255,255,255,.035); --panel2:rgba(255,255,255,.055);
-    --line:rgba(255,255,255,.09); --line2:rgba(168,85,247,.35);
-    --text:#f0ebfa; --muted:#a99fc9; --muted2:#8a80ab;
-    --accent:#a855f7; --accent2:#c084fc; --pink:#e879f9; --ok:#34d399; --warn:#fbbf24;
-    --r:16px; --ease:cubic-bezier(.16,1,.3,1);
-  }
+/* ============================================================= tokens */
+:root, :root[data-theme="dark"]{
+  --bg:#08050f; --bg2:#0d0716;
+  --text:#f0ebfa; --muted:#a99fc9; --muted2:#8a80ab;
+  --panel:rgba(255,255,255,.035); --panel2:rgba(255,255,255,.06);
+  --glass1:rgba(255,255,255,.05); --glass2:rgba(255,255,255,.014);
+  --line:rgba(255,255,255,.09); --line2:rgba(168,85,247,.35);
+  --code-bg:rgba(0,0,0,.5); --header-bg:rgba(8,5,15,.72); --strip-bg:rgba(255,255,255,.02);
+  --gridc:rgba(255,255,255,.035); --shadow:0 20px 50px -30px rgba(0,0,0,.8);
+  --shadow-hi:0 26px 70px -28px rgba(168,85,247,.4);
+  --grad1:#c084fc; --grad2:#e879f9; --grad3:#f0abfc;
+  --accent:#a855f7; --accent2:#c084fc; --pink:#e879f9;
+  --ok:#34d399; --warn:#fbbf24; --danger:#f87171;
+  --r:16px; --ease:cubic-bezier(.16,1,.3,1);
+}
+:root[data-theme="light"]{
+  --bg:#f7f5fc; --bg2:#efecf7;
+  --text:#171226; --muted:#5b5177; --muted2:#7d7398;
+  --panel:rgba(23,18,38,.045); --panel2:rgba(23,18,38,.07);
+  --glass1:rgba(255,255,255,.75); --glass2:rgba(255,255,255,.45);
+  --line:rgba(23,18,38,.10); --line2:rgba(147,51,234,.45);
+  --code-bg:#1c1631; --header-bg:rgba(247,245,252,.78); --strip-bg:rgba(255,255,255,.5);
+  --gridc:rgba(23,18,38,.045); --shadow:0 16px 44px -26px rgba(39,20,85,.25);
+  --shadow-hi:0 22px 60px -24px rgba(147,51,234,.35);
+  --grad1:#9333ea; --grad2:#c026d3; --grad3:#7c3aed;
+  --accent:#9333ea; --accent2:#a21caf; --pink:#c026d3;
+  --ok:#0d9488; --warn:#b45309; --danger:#dc2626;
+}
+:root[data-theme="light"] .bgfx{opacity:.5}
+:root[data-theme="light"] .blob{opacity:.32}
+:root[data-theme="light"] .card .ico,
+:root[data-theme="light"] .ico{background:linear-gradient(135deg,rgba(147,51,234,.14),rgba(192,38,211,.08));border-color:rgba(147,51,234,.25)}
+
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{margin:0;background:var(--bg);color:var(--text);
+  body{margin:0;background:var(--bg);color:var(--text);transition:background .35s,color .35s;
        font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
        letter-spacing:-.01em;overflow-x:hidden}
-  ::selection{background:rgba(168,85,247,.4);color:#fff}
   a{color:var(--accent2);text-decoration:none}
   a:hover{text-decoration:none}
   img{max-width:100%}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  ::selection{background:rgba(168,85,247,.35);color:#fff}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.03em;line-height:1.12;margin:0 0 12px;color:var(--text)}
+  h3{margin:0 0 8px;font-size:16.5px;letter-spacing:-.01em;color:var(--text)}
+  .sub{color:var(--muted);margin:0 0 38px;max-width:720px;font-size:16.5px}
+  section{padding:78px 0;position:relative}
+  .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line2),transparent);max-width:1120px;margin:0 auto}
 
-  /* ============================ ambient background ============================ */
-  .bgfx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
-  .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5}
+  /* ============================================================= ambient */
+  .bgfx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;transition:opacity .35s}
+  .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;transition:opacity .35s}
   .b1{width:560px;height:560px;background:radial-gradient(circle,rgba(124,58,237,.55),transparent 65%);
       top:-180px;left:-140px;animation:drift1 26s ease-in-out infinite alternate}
   .b2{width:480px;height:480px;background:radial-gradient(circle,rgba(232,121,249,.30),transparent 65%);
@@ -39,19 +131,22 @@
   @keyframes drift2{to{transform:translate(-70px,90px) scale(1.08)}}
   @keyframes drift3{to{transform:translate(60px,-80px) scale(1.1)}}
   .gridlines{position:fixed;inset:0;z-index:-2;pointer-events:none;
-    background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
-                     linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    background-image:linear-gradient(var(--gridc) 1px,transparent 1px),
+                     linear-gradient(90deg,var(--gridc) 1px,transparent 1px);
     background-size:56px 56px;
-    -webkit-mask-image:radial-gradient(720px 480px at 50% 0%,#000 0%,transparent 78%);
-            mask-image:radial-gradient(720px 480px at 50% 0%,#000 0%,transparent 78%)}
+    -webkit-mask-image:radial-gradient(760px 500px at 50% 0%,#000 0%,transparent 78%);
+            mask-image:radial-gradient(760px 500px at 50% 0%,#000 0%,transparent 78%)}
 
-  /* ============================ chrome ============================ */
-  .progress{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:30;
+  /* ============================================================= chrome */
+  .progress{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:31;
     background:linear-gradient(90deg,var(--accent),var(--pink));box-shadow:0 0 12px rgba(168,85,247,.7);transition:width .12s linear}
-  header{position:sticky;top:0;z-index:20;background:rgba(8,5,15,.72);
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent}
+  .skip{position:fixed;left:-999px;top:12px;z-index:60;padding:10px 18px;border-radius:12px;
+    background:var(--accent);color:#fff;font-weight:700}
+  .skip:focus{left:12px;text-decoration:none;color:#fff}
+  header{position:sticky;top:0;z-index:20;background:var(--header-bg);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .3s,background .35s}
   header.scrolled{border-bottom-color:var(--line)}
-  nav{display:flex;gap:20px;align-items:center;padding:13px 0}
+  nav{display:flex;gap:16px;align-items:center;padding:12px 0}
   .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--text);letter-spacing:-.02em}
   .brand img{width:30px;height:30px;border-radius:9px;box-shadow:0 4px 18px rgba(168,85,247,.45)}
   nav .spacer{flex:1}
@@ -60,9 +155,9 @@
     background:linear-gradient(90deg,var(--accent),var(--pink));transition:right .3s var(--ease)}
   nav a.nav:hover,nav a.nav[aria-current]{color:var(--text)}
   nav a.nav:hover::after,nav a.nav[aria-current]::after{right:0}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:12px;
-    font-weight:650;font-size:15px;cursor:pointer;border:1px solid transparent;
-    transition:transform .3s var(--ease),box-shadow .3s var(--ease),filter .3s;position:relative;overflow:hidden}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:12px;
+    font-weight:650;font-size:15px;cursor:pointer;border:1px solid transparent;color:inherit;
+    transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s,background .3s;position:relative;overflow:hidden}
   .btn.primary{color:#fff;background:linear-gradient(135deg,var(--accent),#7c3aed);
     box-shadow:0 10px 30px -8px rgba(168,85,247,.55)}
   .btn.primary::after{content:"";position:absolute;top:0;left:-80%;width:60%;height:100%;
@@ -73,44 +168,58 @@
   .btn.ghost{border-color:var(--line);color:var(--text);background:var(--panel);
     backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   .btn.ghost:hover{border-color:var(--line2);transform:translateY(-2px)}
+  .btn.small{padding:8px 14px;font-size:13.5px;border-radius:10px}
 
-  /* ============================ typography helpers ============================ */
+  /* theme toggle */
+  #themeToggle{width:40px;height:40px;padding:0;border-radius:11px;line-height:1}
+  #themeToggle svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round}
+  :root[data-theme="dark"] .ico-sun{display:block}
+  :root[data-theme="dark"] .ico-moon{display:none}
+  :root[data-theme="light"] .ico-sun{display:none}
+  :root[data-theme="light"] .ico-moon{display:block}
+
+  /* ============================================================= type utils */
   .overline{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:750;
     letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:14px}
   .overline::before{content:"";width:22px;height:1.5px;border-radius:2px;
     background:linear-gradient(90deg,var(--accent),transparent)}
-  .grad{background:linear-gradient(90deg,var(--accent2),var(--pink),#f0abfc,var(--accent2));
+  .grad{background:linear-gradient(90deg,var(--grad1),var(--grad2),var(--grad3),var(--grad1));
     background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
     animation:hue 9s ease-in-out infinite}
   @keyframes hue{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
-  h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.03em;line-height:1.12;margin:0 0 12px}
-  .sub{color:var(--muted);margin:0 0 34px;max-width:720px;font-size:16.5px}
-  section{padding:76px 0}
+  code.inline{background:rgba(168,85,247,.14);border:1px solid rgba(168,85,247,.25);
+    padding:2px 7px;border-radius:7px;font-size:.87em;color:var(--text)}
+  sec-note, .note{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 8%,transparent);
+    padding:14px 18px;border-radius:0 12px 12px 0;color:var(--muted);font-size:14.5px;margin-top:26px}
+  .good{border-left:3px solid var(--ok);background:color-mix(in srgb,var(--ok) 8%,transparent);
+    padding:14px 18px;border-radius:0 12px 12px 0;color:var(--muted);font-size:14.5px;margin-top:26px}
+  .note b,.good b{color:var(--text)}
 
-  /* ============================ reveal animations ============================ */
-  [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+  /* ============================================================= reveal */
+  [data-reveal]{opacity:0;transform:translateY(26px);
+    transition:opacity .8s var(--ease),transform .8s var(--ease)}
   [data-reveal].in{opacity:1;transform:none}
-  [data-reveal="left"]{transform:translateX(-30px)}
-  [data-reveal="pop"]{transform:scale(.94)}
-  [data-reveal].in:hover{}
   .stag>*{opacity:0;transform:translateY(24px);
     transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--i,0)*70ms)}
   .stag.in>*{opacity:1;transform:none}
 
-  /* ============================ glass cards ============================ */
-  .glass{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+  /* ============================================================= glass */
+  .glass{position:relative;background:linear-gradient(180deg,var(--glass1),var(--glass2));
     border:1px solid var(--line);border-radius:var(--r);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    box-shadow:0 20px 50px -30px rgba(0,0,0,.8);
-    transition:transform .35s var(--ease),border-color .35s,box-shadow .35s}
-  .glass:hover{transform:translateY(-4px);border-color:var(--line2);
-    box-shadow:0 26px 70px -28px rgba(168,85,247,.4)}
+    box-shadow:var(--shadow);
+    transition:transform .35s var(--ease),border-color .35s,box-shadow .35s,background .35s}
   .glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
     background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,.02) 38%,rgba(168,85,247,.35));
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude}
+  :root[data-theme="light"] .glass::before{
+    background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(147,51,234,.28));
+    background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,255,255,.2) 38%,rgba(147,51,234,.35))}
+  .glass:hover{transform:translateY(-4px);border-color:var(--line2);box-shadow:var(--shadow-hi)}
 
-  /* ============================ hero ============================ */
+  /* ============================================================= hero */
   .hero{position:relative;padding:88px 0 46px;text-align:center}
   .hero .tag{display:inline-flex;gap:8px;align-items:center;padding:7px 16px;border-radius:99px;
     font-size:13.5px;font-weight:600;color:var(--accent2);background:var(--panel);
@@ -121,67 +230,81 @@
   @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
   .hero h1{font-size:clamp(34px,5.6vw,58px);line-height:1.06;letter-spacing:-.045em;margin:0 0 22px;font-weight:850;
     animation:rise .9s var(--ease) .15s both}
-  .hero p.lead{font-size:clamp(16px,2vw,19.5px);color:var(--muted);max-width:730px;margin:0 auto 32px;
+  .hero p.lead{font-size:clamp(16px,2vw,19.5px);color:var(--muted);max-width:730px;margin:0 auto 30px;
     animation:rise .9s var(--ease) .25s both}
-  .hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:52px;
+  .hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:22px;
     animation:rise .9s var(--ease) .35s both}
+  .quicknav{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:44px;
+    animation:rise .9s var(--ease) .42s both}
+  .quicknav a{padding:7px 15px;border-radius:99px;font-size:13.5px;font-weight:600;color:var(--muted);
+    background:var(--panel);border:1px solid var(--line);transition:all .25s}
+  .quicknav a:hover{color:var(--text);border-color:var(--line2);transform:translateY(-2px)}
   @keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
-
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;
-    animation:rise .9s var(--ease) .45s both}
+    animation:rise .9s var(--ease) .5s both}
   .stat{padding:18px 10px;text-align:center}
   .stat b{display:block;font-size:clamp(24px,3vw,32px);font-weight:850;letter-spacing:-.03em}
   .stat small{color:var(--muted);font-size:13px}
 
-  /* ============================ marquee ============================ */
-  .strip{border-block:1px solid var(--line);background:rgba(255,255,255,.02);overflow:hidden;
+  /* ============================================================= marquee */
+  .strip{border-block:1px solid var(--line);background:var(--strip-bg);overflow:hidden;
     -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
             mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-  .strip .row{display:flex;gap:44px;width:max-content;padding:13px 0;
-    animation:marquee 26s linear infinite}
+  .strip .row{display:flex;gap:44px;width:max-content;padding:13px 0;animation:marquee 26s linear infinite}
   .strip:hover .row{animation-play-state:paused}
   @keyframes marquee{to{transform:translateX(-50%)}}
   .strip span{display:inline-flex;align-items:center;gap:10px;color:var(--muted2);
     font-size:13px;font-weight:650;letter-spacing:.16em;white-space:nowrap}
   .strip span::before{content:"◆";color:var(--accent);font-size:9px}
 
-  /* ============================ pipeline ============================ */
+  /* ============================================================= steps */
   .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px}
   .step{padding:20px 18px}
-  .step .n{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;font-weight:850;font-size:13px;
-    color:#fff;background:linear-gradient(135deg,var(--accent),#7c3aed);margin-bottom:12px;
+  step-n,.step .n{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;
+    font-weight:850;font-size:13px;color:#fff;margin-bottom:12px;
+    background:linear-gradient(135deg,var(--accent),#7c3aed);
     box-shadow:0 6px 18px -6px rgba(168,85,247,.65)}
   .step b{display:block;margin:0 0 5px;font-size:15px}
   .step small{color:var(--muted);font-size:13px;line-height:1.5;display:block}
 
-  /* ============================ features / cards ============================ */
+  /* ============================================================= cards */
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:16px}
   .card{padding:24px}
   .card .ico{width:44px;height:44px;display:grid;place-items:center;font-size:21px;border-radius:13px;margin-bottom:14px;
     background:linear-gradient(135deg,rgba(168,85,247,.22),rgba(232,121,249,.12));
     border:1px solid rgba(168,85,247,.3)}
-  .card h3{margin:0 0 8px;font-size:16.5px;letter-spacing:-.01em}
   .card p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+  .group{margin:38px 0 16px;display:flex;align-items:center;gap:12px}
+  .group .gi{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;font-size:18px;
+    background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(232,121,249,.1));
+    border:1px solid rgba(168,85,247,.3)}
+  .group b{font-size:17px;color:var(--text)}
+  .group small{display:block;color:var(--muted);font-size:13px}
 
+  /* models */
   .model{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:14px}
   .m{padding:20px}
-  .m b{display:block;font-size:14.5px;margin-bottom:3px}
-  .m small{color:var(--muted);font-size:13px;line-height:1.55;display:block}
   .m .chip{display:inline-block;margin-bottom:12px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700;
     letter-spacing:.08em;color:var(--accent2);background:rgba(168,85,247,.14);border:1px solid rgba(168,85,247,.35)}
+  .m small{color:var(--muted);font-size:13px;line-height:1.55;display:block}
+  .reqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;margin-top:26px;
+    border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .reqs>div{padding:16px 20px;border-right:1px solid var(--line)}
+  .reqs>div:last-child{border-right:0}
+  .reqs small{display:block;color:var(--muted2);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+  .reqs b{font-size:14.5px}
 
-  pre{background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:12px;padding:15px 17px;overflow-x:auto;
-    font:13px/1.65 ui-monospace,Consolas,SFMono-Regular,monospace;color:#d9cdf5;position:relative}
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:12px;padding:15px 17px;overflow-x:auto;
+    font:13px/1.65 ui-monospace,Consolas,SFMono-Regular,monospace;color:#d9cdf5;position:relative;margin:14px 0}
   pre::before{content:"";position:absolute;inset:0;border-radius:12px;padding:1px;pointer-events:none;
     background:linear-gradient(135deg,rgba(168,85,247,.4),transparent 45%);
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude}
-  code.inline{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.25);padding:2px 7px;border-radius:7px;font-size:.87em}
 
-  /* tabs / faq */
+  /* accordions */
   details.tab{border-radius:var(--r);margin-bottom:14px;overflow:hidden}
   details.tab summary{padding:17px 20px;cursor:pointer;font-weight:650;font-size:15px;list-style:none;
-    display:flex;gap:10px;align-items:center;transition:background .25s}
+    display:flex;gap:10px;align-items:center;color:var(--text);transition:background .25s}
   details.tab summary:hover{background:var(--panel2)}
   details.tab summary::-webkit-details-marker{display:none}
   details.tab summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid var(--muted);
@@ -194,21 +317,38 @@
   details.faq summary::-webkit-details-marker{display:none}
   details.faq div{padding:0 18px 16px;color:var(--muted);font-size:14.5px;animation:fadeOpen .3s var(--ease)}
 
-  .note{border-left:3px solid var(--warn);background:rgba(251,191,36,.07);padding:14px 18px;border-radius:0 12px 12px 0;
-    color:var(--muted);font-size:14.5px;margin-top:26px}
-  .good{border-left:3px solid var(--ok);background:rgba(52,211,153,.07);padding:14px 18px;border-radius:0 12px 12px 0;
-    color:var(--muted);font-size:14.5px;margin-top:26px}
-  .note b,.good b{color:var(--text)}
+  /* hard rules (privacy) */
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;counter-reset:rule}
+  .rule{padding:20px}
+  .rule .n{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;font-weight:850;
+    font-size:12.5px;color:var(--accent2);border:1px solid var(--line2);
+    background:rgba(168,85,247,.12);margin-bottom:12px}
+  .rule b{display:block;font-size:14.5px;margin-bottom:5px}
+  .rule small{color:var(--muted);font-size:13px;line-height:1.55;display:block}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .chipx{display:inline-flex;gap:7px;align-items:center;padding:9px 15px;border-radius:99px;background:var(--panel);
+    border:1px solid var(--line);color:var(--muted);font-size:13.5px;font-weight:550}
+  .chipx b{color:var(--text)}
 
-  /* footer */
+  /* CTA band + footer */
+  .cta-band{padding:78px 0 60px}
+  .ctabox{text-align:center;padding:52px 32px;position:relative;overflow:hidden}
+  .ctabox::after{content:"";position:absolute;width:520px;height:520px;border-radius:50%;
+    top:-300px;left:50%;transform:translateX(-50%);
+    background:radial-gradient(circle,rgba(168,85,247,.28),transparent 60%);pointer-events:none}
+  .ctabox h2{position:relative}
+  .ctabox p{color:var(--muted);max-width:560px;margin:0 auto 30px;position:relative}
   footer{border-top:1px solid var(--line);padding:40px 0 46px;color:var(--muted);font-size:13.5px;
     background:linear-gradient(180deg,transparent,rgba(124,58,237,.07))}
   .badge{display:inline-block;padding:4px 12px;border:1px solid var(--line);border-radius:99px;
     color:var(--muted);font-size:12px;margin:0 8px 10px 0;background:var(--panel)}
+  .fcols{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-start}
 
   @media (max-width:640px){
     .hero{padding:64px 0 36px} section{padding:52px 0}
-    nav a.nav{display:none} nav a#gh{display:inline}
+    nav a.nav{display:none}
+    .reqs>div{border-right:0;border-bottom:1px solid var(--line)}
+    .reqs>div:last-child{border-bottom:0}
   }
 
   /* accessibility: honor reduced motion */
@@ -222,6 +362,8 @@
 </head>
 <body>
 
+<a class="skip" href="#main">Skip to content</a>
+
 <div class="bgfx" aria-hidden="true">
   <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
 </div>
@@ -230,30 +372,41 @@
 
 <header id="topbar">
   <div class="wrap">
-    <nav>
+    <nav aria-label="Primary">
       <span class="brand"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a855f7'/%3E%3Cstop offset='1' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='24' r='11' fill='none' stroke='white' stroke-width='5'/%3E%3Cline x1='32' y1='35' x2='32' y2='52' stroke='white' stroke-width='5'/%3E%3Cline x1='25' y1='46' x2='39' y2='46' stroke='white' stroke-width='5'/%3E%3C/svg%3E" alt="">GBV&nbsp;Monitor</span>
       <span class="spacer"></span>
       <a class="nav" href="#pipeline">How it works</a>
       <a class="nav" href="#features">Features</a>
+      <a class="nav" href="#models">Models</a>
       <a class="nav" href="#install">Install</a>
       <a class="nav" href="#privacy">Privacy</a>
       <a class="nav" href="#faq">FAQ</a>
-      <a class="nav btn ghost" id="gh" href="#">GitHub</a>
+      <button id="themeToggle" class="btn ghost small" type="button" aria-label="Switch to light theme" title="Toggle light / dark theme">
+        <svg class="ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M4.8 4.8l1.7 1.7M17.5 17.5l1.7 1.7M19.2 4.8l-1.7 1.7M6.5 17.5l-1.7 1.7"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8z"/></svg>
+      </button>
+      <a class="btn ghost small" id="gh" href="#">GitHub</a>
     </nav>
   </div>
 </header>
 
+<main id="main" aria-label="GBV Monitor overview">
+
 <!-- ================= HERO ================= -->
-<div class="hero">
+<div class="hero" id="hero" role="group" aria-label="Introduction">
   <div class="wrap">
     <span class="tag"><span class="dot"></span> Local AI · Read-only · Human-approved · Zero telemetry</span>
     <h1>Document gender-based<br>cyberviolence with <span class="grad">AI that never phones&nbsp;home</span></h1>
     <p class="lead">GBV Monitor collects public Facebook posts with a read-only account, classifies GBV
     &amp; hate speech in <b>Arabic, Darija, French and English</b> with a locally-running vision-capable
-    model, and produces  SHA-256 anchored documentation.</p>
+    model, and produces SHA-256-anchored documentation.</p>
     <div class="cta">
       <a class="btn primary" id="dl" href="#">⬇ Download the latest bundle</a>
       <a class="btn ghost" href="#install">Installation guide →</a>
+    </div>
+    <div class="quicknav" aria-label="Section shortcuts">
+      <a href="#pipeline">Pipeline</a><a href="#features">Features</a><a href="#models">Models</a>
+      <a href="#install">Install</a><a href="#privacy">Privacy</a><a href="#faq">FAQ</a>
     </div>
     <div class="stats stag" data-reveal>
       <div class="stat glass"><b class="grad">~7 GB</b><small>portable bundle — unzip &amp; run</small></div>
@@ -277,10 +430,10 @@
 </div>
 
 <!-- ================= PIPELINE ================= -->
-<section id="pipeline">
+<section id="pipeline" aria-labelledby="h-pipeline">
   <div class="wrap">
     <div data-reveal><span class="overline">Pipeline</span>
-      <h2>Six moves, one <span class="grad">auditable</span> workflow</h2>
+      <h2 id="h-pipeline">Six moves, one <span class="grad">auditable</span> workflow</h2>
       <p class="sub">The same app runs as a desktop interface, or as a scheduler on a field laptop
       that nobody remembers is watching.</p>
     </div>
@@ -295,32 +448,50 @@
   </div>
 </section>
 
-<!-- ================= FEATURES ================= -->
-<section id="features">
+<div class="divider" aria-hidden="true"></div>
+
+<!-- ================= FEATURES (grouped) ================= -->
+<section id="features" aria-labelledby="h-features">
   <div class="wrap">
     <div data-reveal><span class="overline">Capabilities</span>
-      <h2>Built for <span class="grad">defensible</span> documentation</h2>
-      <p class="sub">For NGOs and human-rights investigators who need evidence-grade output — and can't
-      send survivor data to a third-party API.</p>
+      <h2 id="h-features">Built for <span class="grad">defensible</span> documentation</h2>
+      <p class="sub">Organized in three layers: what the AI reads, what it detects across pages, and what makes
+      the output trustworthy.</p>
     </div>
+
+    <div data-reveal class="group"><span class="gi">🧠</span><span><b>Intelligence</b><small>How the local model reads your corpus</small></span></div>
     <div class="grid stag" data-reveal>
       <div class="card glass" style="--i:0"><span class="ico">🖼️</span><h3>Text + image screening</h3><p>The shipped model reads both: captions and hate speech in text; NCII &amp; sextortion-screenshot indicators in images. Conservative triage leads only.</p></div>
-      <div class="card glass" style="--i:1"><span class="ico">🧠</span><h3>Verdict memory</h3><p>Items you've confirmed or rejected are matched (≥0.97 similarity) across pages and runs — recurring content inherits your decision, stamped.</p></div>
-      <div class="card glass" style="--i:2"><span class="ico">👁️</span><h3>Self-consistency voting</h3><p>Multiple labelled passes vote on ambiguous items; vote spread feeds the confidence score and the review-inbox ordering.</p></div>
-      <div class="card glass" style="--i:3"><span class="ico">🕸️</span><h3>Coordination analytics</h3><p>Near-dupe &amp; template fingerprints, cross-page duplicates, burst detection vs page history, PageRank/betweenness leaders → GraphML.</p></div>
-      <div class="card glass" style="--i:4"><span class="ico">⚖️</span><h3>Quality dashboard</h3><p>Cohen's κ between your reviews and the AI, per-category calibration, FN/FP stats — plus an eval harness so changes are measured, not vibes.</p></div>
-      <div class="card glass" style="--i:5"><span class="ico">⏱️</span><h3>Watchlists &amp; jobs</h3><p>Register pages with cadences and budgets; the job engine runs due watchlists — or wire the CLI into Windows Task Scheduler.</p></div>
-      <div class="card glass" style="--i:6"><span class="ico">🔐</span><h3>Privacy by construction</h3><p>Cookies held in RAM only, pseudonymised comments, optional SQLCipher encryption at rest, full local audit trail.</p></div>
-      <div class="card glass" style="--i:7"><span class="ico">📄</span><h3>Scrutiny-ready exports</h3><p>PDF/MD/CSV/JSON with per-item evidence chains and fingerprints; longitudinal deltas; handover packs for partner orgs.</p></div>
+      <div class="card glass" style="--i:1"><span class="ico">👁️</span><h3>Self-consistency voting</h3><p>Multiple labelled passes vote on ambiguous items; the vote spread feeds the confidence score and the review-inbox ordering.</p></div>
+      <div class="card glass" style="--i:2"><span class="ico">📚</span><h3>Lexicon safety net</h3><p>A keyword/regex net catches slurs and HR-violating phrases the model might miss — and baits the verifier pass with <code class="inline">lexicon_attention</code>.</p></div>
+      <div class="card glass" style="--i:3"><span class="ico">🌐</span><h3>Arabic-first prompts</h3><p>MSA + Darija + French + English prompt pack; JSON-shaped verdicts with severity, categories and anchored quotes.</p></div>
+    </div>
+
+    <div data-reveal class="group"><span class="gi">🕸️</span><span><b>Coordination insight</b><small>What emerges across pages and runs</small></span></div>
+    <div class="grid stag" data-reveal>
+      <div class="card glass" style="--i:0"><span class="ico">🧠</span><h3>Verdict memory</h3><p>Items you've confirmed or rejected are matched (≥0.97 similarity) across pages and runs — recurring content inherits your decision, stamped.</p></div>
+      <div class="card glass" style="--i:1"><span class="ico">🧩</span><h3>Duplicate &amp; template detection</h3><p>Near-duplicates, shingle fingerprints and distinct-author counts expose "same text, N accounts" patterns.</p></div>
+      <div class="card glass" style="--i:2"><span class="ico">📈</span><h3>Burst detection</h3><p>σ-based wave detection versus each page's history — coordinated activity after a CEDAW debate, visible at a glance.</p></div>
+      <div class="card glass" style="--i:3"><span class="ico">🕸️</span><h3>Amplification graphs</h3><p>PageRank/betweenness leaders over author ↔ page ↔ mention networks, exported as GraphML for external analysis.</p></div>
+    </div>
+
+    <div data-reveal class="group"><span class="gi">🛡️</span><span><b>Trust &amp; operations</b><small>What makes the output usable by teams</small></span></div>
+    <div class="grid stag" data-reveal>
+      <div class="card glass" style="--i:0"><span class="ico">⚖️</span><h3>Quality dashboard</h3><p>Cohen's κ between your reviews and the AI, per-category calibration, FN/FP stats — plus an eval harness so changes are measured, not vibes.</p></div>
+      <div class="card glass" style="--i:1"><span class="ico">⏱️</span><h3>Watchlists &amp; background jobs</h3><p>Register pages with cadences and budgets; the job engine runs due watchlists in the background — or wire the CLI into Task Scheduler.</p></div>
+      <div class="card glass" style="--i:2"><span class="ico">🔐</span><h3>Privacy by construction</h3><p>Cookies held in RAM only, pseudonymised comments, optional SQLCipher encryption at rest, full local audit trail.</p></div>
+      <div class="card glass" style="--i:3"><span class="ico">📄</span><h3>Scrutiny-ready exports</h3><p>PDF/MD/CSV/JSON with per-item evidence chains and fingerprints; longitudinal deltas; handover packs for partner orgs.</p></div>
     </div>
   </div>
 </section>
 
+<div class="divider" aria-hidden="true"></div>
+
 <!-- ================= MODELS ================= -->
-<section id="models">
+<section id="models" aria-labelledby="h-models">
   <div class="wrap">
     <div data-reveal><span class="overline">In the box</span>
-      <h2>What <span class="grad">ships</span> with the bundle</h2>
+      <h2 id="h-models">What <span class="grad">ships</span> with the bundle</h2>
       <p class="sub">~6–7 GB, and that's everything — no LM Studio, no Python, no accounts beyond the
       Facebook session you already use. Model files drop into <code class="inline">models/</code> to swap.</p>
     </div>
@@ -330,17 +501,26 @@
       <div class="m glass" style="--i:2"><span class="chip">ENGINE</span><b>llama.cpp (bundled)</b><small>Vulkan-first with CPU fallback; OpenAI-compatible endpoints bound to 127.0.0.1 only.</small></div>
       <div class="m glass" style="--i:3"><span class="chip">COLLECTOR</span><b>Chromium (bundled)</b><small>The Playwright browser does the read-only collection. Nothing else touches the network.</small></div>
     </div>
+    <div class="reqs stag" data-reveal>
+      <div style="--i:0"><small>OS</small><b>Windows 10/11 · 64-bit</b></div>
+      <div style="--i:1"><small>RAM</small><b>~8 GB free (14B: ~14 GB)</b></div>
+      <div style="--i:2"><small>DISK</small><b>~10 GB</b></div>
+      <div style="--i:3"><small>GPU</small><b>Optional — Vulkan/CPU auto</b></div>
+      <div style="--i:4"><small>SWAP MODELS</small><b>Any .gguf in models/</b></div>
+    </div>
     <div class="good" data-reveal><b>Swap models freely:</b> drop another <code class="inline">.gguf</code> into
     <code class="inline">models/</code> — e.g. a 14B model on a ≥16 GB machine. Text-only files disable only the image
     screening; everything else keeps working.</div>
   </div>
 </section>
 
+<div class="divider" aria-hidden="true"></div>
+
 <!-- ================= INSTALL ================= -->
-<section id="install">
+<section id="install" aria-labelledby="h-install">
   <div class="wrap">
     <div data-reveal><span class="overline">Install</span>
-      <h2>Four ways in, <span class="grad">one exe</span> experience</h2>
+      <h2 id="h-install">Four ways in, <span class="grad">one exe</span> experience</h2>
       <p class="sub">All paths end the same way: a folder with <code class="inline">GBVMonitor.exe</code> that
       needs nothing else installed.</p>
     </div>
@@ -355,7 +535,6 @@
           <p>Right-click the zip → <b>Extract All</b> → open the folder → double-click
           <code class="inline">GBVMonitor.exe</code>. The console shows the local model loading (15–90 s),
           then your browser opens the interface.</p>
-          <p>✅ Requirements: Windows 10/11 64-bit · ~8 GB free RAM · ~10 GB disk.</p>
           <p><a class="btn primary" id="dl2" href="#">⬇ Go to Releases</a></p>
         </div>
       </details>
@@ -405,19 +584,28 @@ GBVMonitor.exe monitor add-watch https://www.facebook.com/&lt;page&gt; --label "
   </div>
 </section>
 
+<div class="divider" aria-hidden="true"></div>
+
 <!-- ================= PRIVACY ================= -->
-<section id="privacy">
+<section id="privacy" aria-labelledby="h-privacy">
   <div class="wrap">
     <div data-reveal><span class="overline">Privacy &amp; ethics</span>
-      <h2>Nothing <span class="grad">goes anywhere</span> without a human export</h2>
-      <p class="sub">Hard rules, not policies: read-only collection, local-only models, human approval on every flag,
-      hard budgets per run, provenance on every claim.</p>
+      <h2 id="h-privacy">Five <span class="grad">hard rules</span>, one posture</h2>
+      <p class="sub">Not policies — constraints baked into the architecture. The AI proposes; a human always disposes.</p>
     </div>
-    <div class="grid stag" data-reveal>
-      <div class="card glass" style="--i:0"><span class="ico">🧎</span><h3>Human chain-of-custody</h3><p>Every flag lands unconfirmed in a review inbox; exports record reviewer, timestamp and decision. The AI never writes "evidence" by itself.</p></div>
-      <div class="card glass" style="--i:1"><span class="ico">🎭</span><h3>Pseudonymised by default</h3><p>Author names and commenters become stable local aliases; the mapping never leaves the machine.</p></div>
-      <div class="card glass" style="--i:2"><span class="ico">🍪</span><h3>Cookies: memory only</h3><p>Facebook session cookies are held in RAM for the current run and never written to disk — by design and by test.</p></div>
-      <div class="card glass" style="--i:3"><span class="ico">📜</span><h3>Audit log</h3><p>Every run, review, export and config change is appended to a local audit trail — who did what, when.</p></div>
+    <div class="rules stag" data-reveal>
+      <div class="rule glass" style="--i:0"><span class="n">1</span><b>Read-only collection</b><small>Never likes, comments, follows or messages. Collection only, with hard budgets the agent cannot raise.</small></div>
+      <div class="rule glass" style="--i:1"><span class="n">2</span><b>Nothing leaves the machine</b><small>All models — chat, vision tower, embeddings — run locally. No cloud, no model API, no telemetry.</small></div>
+      <div class="rule glass" style="--i:2"><span class="n">3</span><b>Human in the loop</b><small>The agent proposes; a human approves every impact step — new targets, case writes, publication.</small></div>
+      <div class="rule glass" style="--i:3"><span class="n">4</span><b>Hard budgets</b><small>Every run carries max_items / max_time / max_requests ceilings that cannot be exceeded unilaterally.</small></div>
+      <div class="rule glass" style="--i:4"><span class="n">5</span><b>Provenance first</b><small>Every exported claim traces back to a SHA-256-anchored item — and your review log makes it defensible.</small></div>
+    </div>
+    <div class="chips stag" data-reveal>
+      <span class="chipx" style="--i:0">🍪 <b>Cookies in RAM only</b> — never written to disk</span>
+      <span class="chipx" style="--i:1">🎭 <b>Pseudonymised</b> by default</span>
+      <span class="chipx" style="--i:2">🔐 <b>Optional encryption</b> at rest (SQLCipher)</span>
+      <span class="chipx" style="--i:3">📜 <b>Audit log</b> of every run &amp; export</span>
+      <span class="chipx" style="--i:4">🧎 <b>Reviewer record</b> signed on exports</span>
     </div>
     <div class="note" data-reveal><b>Ethics notice:</b> intended for lawful documentation of gender-based cyberviolence by
     affected communities, human-rights defenders, journalists and researchers. You are responsible for complying with
@@ -426,11 +614,13 @@ GBVMonitor.exe monitor add-watch https://www.facebook.com/&lt;page&gt; --label "
   </div>
 </section>
 
+<div class="divider" aria-hidden="true"></div>
+
 <!-- ================= FAQ ================= -->
-<section id="faq">
+<section id="faq" aria-labelledby="h-faq">
   <div class="wrap">
     <div data-reveal><span class="overline">FAQ</span>
-      <h2>Questions, <span class="grad">answered</span></h2>
+      <h2 id="h-faq">Questions, <span class="grad">answered</span></h2>
     </div>
     <div class="stag" data-reveal>
       <details class="faq glass" style="--i:0"><summary>Where does my data actually go?</summary><div>Nowhere by default. Models run via llama.cpp on 127.0.0.1, the case database is local SQLite (optionally encrypted at rest), and exports happen only when you generate them. The only outbound traffic is reading the Facebook pages you chose.</div></details>
@@ -443,23 +633,59 @@ GBVMonitor.exe monitor add-watch https://www.facebook.com/&lt;page&gt; --label "
   </div>
 </section>
 
+<!-- ================= CTA BAND ================= -->
+<div class="cta-band">
+  <div class="wrap">
+    <div class="ctabox glass" data-reveal>
+      <h2>Run your first <span class="grad">monitored session</span> today</h2>
+      <p>Unzip, double-click, and the model is already inside. No servers, no subscriptions —
+      your machine is the whole infrastructure.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative">
+        <a class="btn primary" id="dl3" href="#">⬇ Download the latest bundle</a>
+        <a class="btn ghost" href="#install">Installation guide</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
 <!-- ================= FOOTER ================= -->
 <footer>
   <div class="wrap">
-    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px" data-reveal>
-      <span class="brand" style="font-size:15px"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%237c3aed'/%3E%3Ccircle cx='32' cy='24' r='11' fill='none' stroke='white' stroke-width='5'/%3E%3Cline x1='32' y1='35' x2='32' y2='52' stroke='white' stroke-width='5'/%3E%3Cline x1='25' y1='46' x2='39' y2='46' stroke='white' stroke-width='5'/%3E%3C/svg%3E" alt="">GBV Monitor</span>
-      <a class="btn ghost" id="gh2" href="#" style="padding:8px 16px;font-size:14px">Source &amp; issues →</a>
+    <div class="fcols" data-reveal>
+      <div>
+        <span class="brand" style="font-size:15px"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%237c3aed'/%3E%3Ccircle cx='32' cy='24' r='11' fill='none' stroke='white' stroke-width='5'/%3E%3Cline x1='32' y1='35' x2='32' y2='52' stroke='white' stroke-width='5'/%3E%3Cline x1='25' y1='46' x2='39' y2='46' stroke='white' stroke-width='5'/%3E%3C/svg%3E" alt="">GBV Monitor</span>
+        <div style="max-width:420px;margin-top:10px">Local-first, human-approved documentation of
+        gender-based cyberviolence. Built for and with documentation teams.</div>
+      </div>
+      <div>
+        <b style="color:var(--text);font-size:14px">Navigate</b>
+        <div style="display:grid;gap:6px;margin-top:10px">
+          <a href="#pipeline">How it works</a><a href="#features">Features</a><a href="#models">Models</a>
+          <a href="#install">Install</a><a href="#privacy">Privacy</a><a href="#faq">FAQ</a>
+        </div>
+      </div>
+      <div>
+        <b style="color:var(--text);font-size:14px">Project</b>
+        <div style="display:grid;gap:6px;margin-top:10px">
+          <a id="gh2" href="#">Source &amp; issues</a>
+          <a id="rel" href="#">Releases</a>
+          <a id="act" href="#">Build workflow</a>
+        </div>
+      </div>
     </div>
-    <div data-reveal>
+    <div style="margin-top:22px" data-reveal>
       <span class="badge">Read-only collection</span>
       <span class="badge">Local models only</span>
       <span class="badge">Human-in-the-loop</span>
       <span class="badge">SHA-256 provenance</span>
       <span class="badge">Windows x64 · LM Studio on other OSes</span>
     </div>
-    <div style="margin-top:16px" data-reveal>Releases: <a id="rel" href="#">downloads</a> ·
-    This site describes research/civil-society software, not legal advice.<br>
-    <small>AI output must be reviewed by humans before use. Made with 💜 for documentation teams.</small></div>
+    <div style="margin-top:14px" data-reveal>
+      This site describes research/civil-society software, not legal advice.<br>
+      <small>AI output must be reviewed by humans before use. Made with 💜 for documentation teams.</small>
+    </div>
   </div>
 </footer>
 
@@ -469,10 +695,25 @@ GBVMonitor.exe monitor add-watch https://www.facebook.com/&lt;page&gt; --label "
   window.REPO = "gamepassnvd-creator/TGBV";
   const u = s => "https://github.com/" + window.REPO + s;
   for (const id of ["gh", "gh2"]) { const e = document.getElementById(id); if (e) e.href = u(""); }
-  for (const id of ["dl", "dl2"]) { const e = document.getElementById(id); if (e) e.href = u("/releases"); }
-  const rel = document.getElementById("rel"); if (rel) rel.href = u("/releases");
+  for (const id of ["dl", "dl2", "dl3"]) { const e = document.getElementById(id); if (e) e.href = u("/releases"); }
+  for (const id of ["rel"]) { const e = document.getElementById(id); if (e) e.href = u("/releases"); }
+  const act = document.getElementById("act"); if (act) act.href = u("/actions/workflows/build-windows-exe.yml");
 
-  // ---- scroll progress bar
+  // ---- theme toggle (persisted in localStorage; init script in <head> set the first paint)
+  const tt = document.getElementById("themeToggle");
+  const syncToggle = () => {
+    const light = document.documentElement.dataset.theme === "light";
+    tt.setAttribute("aria-label", light ? "Switch to dark theme" : "Switch to light theme");
+  };
+  tt.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("gbv-theme", next); } catch (e) {}
+    syncToggle();
+  });
+  syncToggle();
+
+  // ---- scroll progress bar + sticky header border
   const bar = document.getElementById("progress");
   const onScroll = () => {
     const h = document.documentElement;
@@ -489,6 +730,18 @@ GBVMonitor.exe monitor add-watch https://www.facebook.com/&lt;page&gt; --label "
     }
   }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
   document.querySelectorAll("[data-reveal]").forEach(el => io.observe(el));
+
+  // ---- scrollspy for nav + quicknav
+  const links = [...document.querySelectorAll("nav a.nav")];
+  const targets = links.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  const spy = new IntersectionObserver(entries => {
+    for (const ent of entries) if (ent.isIntersecting) {
+      links.forEach(a => a.removeAttribute("aria-current"));
+      const i = targets.indexOf(ent.target);
+      if (links[i]) links[i].setAttribute("aria-current", "true");
+    }
+  }, { rootMargin: "-30% 0px -60% 0px" });
+  targets.forEach(t => spy.observe(t));
 </script>
 </body>
 </html>
