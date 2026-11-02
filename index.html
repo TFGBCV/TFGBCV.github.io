@@ -578,6 +578,12 @@ footer{border-top:1px solid var(--line);padding:44px 0 50px;color:var(--muted);f
           <p>Right-click the zip → <b>Extract All</b> → open the folder → double-click
           <code class="inline">GBVMonitor.exe</code>. The console shows the local model loading (15–90 s),
           then your browser opens the interface.</p>
+          <p><b>Verify before you run it.</b> Compare the hash of the reassembled zip with the SHA-256
+          shown in the release notes:</p>
+          <pre>certutil -hashfile GBVMonitor-full.zip SHA256</pre>
+          <p>The app is unsigned and bundles a browser and an AI engine, so Windows SmartScreen or an antivirus
+          may warn on first run. The full source and the automated build that produces the bundle are public
+          (see <b>Source &amp; issues</b> and <b>Build workflow</b> in the footer), so you can inspect or rebuild it yourself.</p>
           <p><a class="btn primary" id="dl2" href="#">⬇ Go to Releases</a></p>
         </div>
       </details>
@@ -587,7 +593,9 @@ footer{border-top:1px solid var(--line);padding:44px 0 50px;color:var(--muted);f
         <div class="body">
           <p>Clone the repo on Windows and run the one-shot build (installs a build venv, downloads the
           llama.cpp engine + models, packs everything):</p>
-          <pre>powershell -ExecutionPolicy Bypass -File packaging\build_windows.ps1 -SkipZip</pre>
+          <pre>powershell -NoProfile -File packaging\build_windows.ps1 -SkipZip</pre>
+          <p>If Windows blocks the script, read it first, then allow scripts for that one PowerShell
+          window only: <code class="inline">Set-ExecutionPolicy -Scope Process RemoteSigned</code>.</p>
           <p>Flags: <code class="inline">-SkipVulkan</code> (CPU-only engine), <code class="inline">-NoVision</code>
           (skip the 1.35 GB vision tower), <code class="inline">-ChatPrefix …</code> (bundle a different model).
           A single setup.exe is optional via
