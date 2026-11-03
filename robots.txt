@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://gamepassnvd-creator.github.io/TGBV/sitemap.xml
+Sitemap: https://tfgbcv.github.io/TGBV/sitemap.xml
